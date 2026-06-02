@@ -4,6 +4,7 @@ from fastapi import FastAPI, UploadFile, File
 from Cleaner import start
 from dotenv import load_dotenv
 from pathlib import Path
+import groq
 
 import logging as log
 import random
@@ -49,9 +50,20 @@ async def uploads_files(file: UploadFile = File(...)):
         content = await file.read()
         file_writer.write(content)
 
-    start(filename)
+    summary = start(filename)
 
-    return {"status": 200, "filename": filename}
+    # return {"status": 200, "body": {
+    #     "filename" : filename,
+    #     "summary" : summary
+    # }}
+
+    response = groq.resposne(summary, )
+
+
+
+# def ai_response():
+#     summary = resposne()
+#     return summary
 
 
 @app.get("/download/{filename}")

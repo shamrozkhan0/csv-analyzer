@@ -1,4 +1,6 @@
 import logging as log
+from turtledemo.chaos import line
+
 import pandas as pd
 import numpy as np
 import os
@@ -15,7 +17,6 @@ class Cleaner:
 
         self.df = pd.read_csv(self.file_uncleaned_path)
         self.sensitive_data = ["email", "phone"]
-
 
 
     def originate_column_type(self):
@@ -57,6 +58,18 @@ class Cleaner:
                     log.info(e)
 
 
+    def csv_summary(self):
+        summary = f"""
+            Shape: {self.df.shape[0]},
+            rows: {self.df.shape[1]}
+            columns and type: {self.df.dtypes.to_string()},
+            Missing values: {self.df.isnull().sum().to_string()}
+            Sample Data: {self.df.head().to_string()}
+            Statical summary: {self.df.describe()}
+        """
+        return summary
+
+
 def start(filename):
     c = Cleaner(filename)
     print(c.df.to_string())
@@ -65,7 +78,8 @@ def start(filename):
     c.clean_string()
     c.clean_date_column()
     file_clean_path = f"{os.getenv("CLEANED_PATH")}/{filename}"
-    c.df.to_csv(file_clean_path, index=False)
     print("\t")
     print(c.df.to_string())
-
+    c.df.to_csv(file_clean_path, index=False)
+    summary  = c.csv_summary()
+    return summary

@@ -1,0 +1,14 @@
+Name,Email,Age,City,Salary,JoinDate
+john doe,johndoe@gmail.com,25.0,karachi,50000.0,2024-01-15
+alice smith,alice@mail.com,,lahore,45000.0,2024-02-15
+michael brown,,30.0,islamabad,,2024-03-10
+sara khan,sarakhan@gmail,28.0,karachi,70000.0,
+,ahmed123@yahoo.com,22.0,peshawar,55000.0,2024-05-01
+david lee,davidlee@gmail.com,,quetta,,2024-06-20
+fatima noor,fatima@gmail.com,19.0,lahore,48000.0,
+ali raza,aliraza@mail,,karachi,62000.0,2024-07-15
+jessica,,27.0,,51000.0,2024-08-10
+hamza ali,hamza@gmail.com,24.0,karachi,,
+emma watson,emmawatson@gmail.com,29.0,london,90000.0,2024-10-12
+noah kim,,31.0,seoul,75000.0,
+sophia,,,new york,88000.0,2024-11-05
