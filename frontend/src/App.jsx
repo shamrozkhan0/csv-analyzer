@@ -1,16 +1,18 @@
 import { useState } from "react"
-import { BrowserRouter, Link, Route, Routes } from "react-router-dom"
+import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom"
 import Agent from "./components/Agent"
+
 
 const Home = () => {
   const url = "http://localhost:8000/uploads"
-  const downloadUrl = "http://localhost:8000/download/"
+  // const downloadUrl = "http://localhost:8000/download/"
   const [file, setFile] = useState(null)
-  const [filename, setFilename] = useState(null)
+  // const [filename, setFilename] = useState(null)
+
+  const navigate = useNavigate()
 
   const sendFile = async (e) => {
     e.preventDefault();
-
 
     const formData = new FormData();
 
@@ -26,9 +28,10 @@ const Home = () => {
 
       const data = await response.json()
 
-      console.log(data.body.summary)
-      setFilename(data.body.filename)
+      console.log(`${data.status} ${data.body.id} ${data.body.content}`)
+      // setFilename(data.body.filename)
 
+      navigate("/ai")
 
     } catch (error) {
       console.log(error)
@@ -43,14 +46,16 @@ const Home = () => {
         onChange={(e) => setFile(e.target.files[0])}
       />
 
-      <Link to="/ai">
-        <button type="submit">Submit</button>
-      </Link>
+      {/* <Link to="/ai"> */}
+      <button type="submit">Submit</button>
+      {/* </Link> */}
     </form>
 
-    <button onClick={() => window.open(`${downloadUrl + filename}`, "_blank")}>
-      Open Cleaned File
-    </button></>
+    {/* <button onClick={() => window.open(`${downloadUrl + filename}`, "_blank")}>
+      download Cleaned File
+    </button>
+     */}
+    </>
 }
 
 

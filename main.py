@@ -1,23 +1,21 @@
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from database import insert_data_into_database
 from fastapi import FastAPI, UploadFile, File
-from Cleaner import start
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
+from Cleaner import start
 from pathlib import Path
-import groq
-
 import logging as log
 import random
 import os
 
+
 log.basicConfig(level=log.INFO, format="%(asctime)s %(levelname)s %(message)s")
-
 app = FastAPI()
-
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173"],
     allow_credentials= False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,12 +35,11 @@ async def uploads_files(file: UploadFile = File(...)):
     allowed_extension = [".csv"]
     file_extension = Path(file.filename).suffix.lower()
 
-
     if file_extension not in allowed_extension:
         return {"message": "File is not valid"}
 
-
-    filename = f"{int(random.random() * 10000000)}.csv"
+    id = int(random.random() * 10000000)
+    filename = str(id) + '.csv' # Later this will changed to the following file extension
     file_path = f"{os.getenv('UPLOAD_PATH')}{filename}"
 
     with open(file_path, "wb") as file_writer:
@@ -52,18 +49,15 @@ async def uploads_files(file: UploadFile = File(...)):
 
     summary = start(filename)
 
-    # return {"status": 200, "body": {
-    #     "filename" : filename,
-    #     "summary" : summary
-    # }}
+    insert_data_into_database(summary, id)
 
-    response = groq.resposne(summary, )
-
-
-
-# def ai_response():
-#     summary = resposne()
-#     return summary
+    return {
+        "status" : "success",
+        "body": {
+            "id": id,
+            "content": summary
+        }
+    }
 
 
 @app.get("/download/{filename}")
