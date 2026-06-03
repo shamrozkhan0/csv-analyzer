@@ -4,18 +4,19 @@ import Agent from "./components/Agent"
 
 
 const Home = () => {
+  
   const url = "http://localhost:8000/uploads"
-  // const downloadUrl = "http://localhost:8000/download/"
   const [file, setFile] = useState(null)
-  // const [filename, setFilename] = useState(null)
+
 
   const navigate = useNavigate()
 
+
   const sendFile = async (e) => {
+
     e.preventDefault();
 
     const formData = new FormData();
-
     formData.append("file", file);
 
     try {
@@ -28,15 +29,17 @@ const Home = () => {
 
       const data = await response.json()
 
-      console.log(`${data.status} ${data.body.id} ${data.body.content}`)
-      // setFilename(data.body.filename)
+      // file_id = data.body.id
 
-      navigate("/ai")
+      console.log(`${data.status} ${data.body.id} ${data.body.content}`)
+
+      navigate(`/ai/${data.body.id}`)
 
     } catch (error) {
       console.log(error)
     }
   }
+
 
   return <>
     <form onSubmit={sendFile}>
@@ -50,12 +53,7 @@ const Home = () => {
       <button type="submit">Submit</button>
       {/* </Link> */}
     </form>
-
-    {/* <button onClick={() => window.open(`${downloadUrl + filename}`, "_blank")}>
-      download Cleaned File
-    </button>
-     */}
-    </>
+  </>
 }
 
 
@@ -65,7 +63,7 @@ const App = () => {
 
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/ai" element={<Agent />} />
+        <Route path="/ai/:file_id" element={<Agent />} />
       </Routes>
 
     </BrowserRouter>

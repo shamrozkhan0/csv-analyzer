@@ -1,83 +1,120 @@
 from dotenv import load_dotenv
+import logging as log
 import pymysql
 import os
 
+
 load_dotenv()
-
-def database_connector():
-    try:
-        print(os.getenv("MYSQL_PASSWORD"))
-        connection = pymysql.connect(
-            host="localhost",
-            user="root",
-            password=f"{os.getenv('MYSQL_PASSWORD')}",
-            database="analyzer"
-        )
-
-        return connection
-
-    except pymysql.MySQLError as e:
-        print(e)
-        return None
+log.basicConfig(level=log.INFO, format="%(asctime)s %(levelname)s | %(message)s")
 
 
-def check_if_table_exist(table_name: str):
-    query = f"""
-        SELECT 1
-        FROM information_schema.tables
-        WHERE table_schema = %s
-        AND table_name = %s
-        LIMIT 1
-     """
-
-    connection = database_connector()
-
-    if connection is None:
-        print("Connection Failed")
-        return
+class Database:
 
 
-    with connection.cursor() as cursor:
-        cursor.execute(query, ("analyzer", table_name))
-        result = cursor.fetchone()
+    def __init__(self):
+        self.table_name = os.getenv("MYSQL_DATA_TABLE_NAME")
 
-        cursor.close()
-        connection.close()
 
-        if result:
-            print("table exist")
+    def _database_connector(self):
+        try:
+            connection = pymysql.connect(
+                host="localhost",
+                user="root",
+                password=f"{os.getenv('MYSQL_PASSWORD')}",
+                database="analyzer"
+            )
+
+            log.info("Connection successfully created with database. ")
+
+            return connection
+
+        except pymysql.Error as e:
+            log.error(f"Error connection to Database: {e}")
+            return False
+
+
+    def _check_if_table_exist(self):
+        query = f"""
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_schema = %s
+            AND table_name = %s
+            LIMIT 1
+        """
+        try:
+           connection = self._database_connector()
+
+           with connection.cursor() as cursor:
+               cursor.execute(query, ("analyzer", self.table_name))
+               result = cursor.fetchone()
+
+               cursor.close()
+               connection.close()
+
+               if result:
+                   return True
+
+               else:
+                   return False
+
+        except pymysql.Error as e:
+           log.error(f"Error searching for table: {e}")
+
+
+
+    def insert_data_into_database(self, data: str, file_id: int):
+
+        try:
+            connection = self._database_connector()
+
+            if not self._check_if_table_exist():
+                log.info("table isn't exist.")
+
+                with connection.cursor() as cursor:
+                    query = f""" CREATE TABLE {self.table_name} (
+                              file_id INT NOT NULL,
+                              content TEXT NOT NULL
+                    ) """
+                    cursor.execute(query)
+                    log.info("Table created successfully.")
+
+
+            with connection.cursor() as cursor:
+                insert_data_query = f"""
+                        INSERT INTO {self.table_name} (file_id, content)
+                        VALUES (%s , %s) 
+                """
+                cursor.execute(insert_data_query, (file_id, data ))
+                log.info("Data inserted successfully.")
+
+            connection.commit()
+            connection.close()
+
             return True
 
-        else:
-            print("table not exist")
+        except pymysql.Error as e:
+            log.error(f"Error inserting data into database: {e}")
             return False
 
 
 
-def insert_data_into_database(data: str, file_id: int):
-    connection = database_connector()
-    table_name = os.getenv("MYSQL_DATA_TABLE_NAME")
+    def get_content_by_id(self, id: int):
+        query = f"""SELECT content FROM {self.table_name} WHERE file_id = %s"""
 
-    if not check_if_table_exist(table_name):
-        print("table isn't exist")
+        try:
+            connection = self._database_connector()
 
-        with connection.cursor() as cursor:
-            query = f""" CREATE TABLE {table_name} (
-                          file_id INT NOT NULL,
-                          content TEXT NOT NULL
-                  ) """
-            cursor.execute(query)
-        print("Table created successfully")
+            with connection.cursor() as cursor:
+                cursor.execute(query, (id,))
+                result = cursor.fetchall()
+                log.info("Successfully fetch content from database.")
+                return result
+
+        except pymysql.Error as e:
+            log.error(f"Error fetching content from database {e}")
+            return None
 
 
-    with connection.cursor() as cursor:
-        insert_data_query = f"""
-                    INSERT INTO {table_name} (file_id, content)
-                    VALUES (%s , %s) 
-            """
-        cursor.execute(insert_data_query, (file_id, data ))
 
-    connection.commit()
-    connection.close()
-
-    return True
+c = Database()
+c.get_content_by_id(2580163)

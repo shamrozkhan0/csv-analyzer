@@ -1,12 +1,13 @@
 from fastapi.middleware.cors import CORSMiddleware
-from database import insert_data_into_database
-from fastapi import FastAPI, UploadFile, File
+from database import Database as database, Database
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from Cleaner import start
 from pathlib import Path
 import logging as log
 import random
+import groq
 import os
 
 
@@ -49,7 +50,8 @@ async def uploads_files(file: UploadFile = File(...)):
 
     summary = start(filename)
 
-    insert_data_into_database(summary, id)
+    d = Database()
+    d.insert_data_into_database(summary,id)
 
     return {
         "status" : "success",
@@ -58,6 +60,35 @@ async def uploads_files(file: UploadFile = File(...)):
             "content": summary
         }
     }
+
+
+@app.post("/ai/{file_id}")
+def get_ai_response(file_id:int, prompt:str = Form(...)):
+    try:
+
+
+        d = Database()
+
+        content = d.get_content_by_id(file_id)
+
+        if content is None or content == "" or file_id is None:
+            raise ValueError(f"Argument not found content or file id is empty")
+
+        response = groq.get_resposne(content, prompt)
+
+        return {
+            "status" : 200,
+            "body" : {
+                "response" : response
+            }
+        }
+
+    except ValueError as e:
+        log.info(f"Error: {e}")
+        return {
+            "status" : 404,
+            "message" : e
+        }
 
 
 @app.get("/download/{filename}")

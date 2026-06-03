@@ -1,11 +1,18 @@
 from openai import OpenAI
+from dotenv import load_dotenv
+import logging as log
+
 import os
+
+
+load_dotenv()
+
 client = OpenAI(
     api_key=os.environ.get("GROQ_API_KEY"),
     base_url="https://api.groq.com/openai/v1",
 )
 
-def resposne(data, prompt):
+def get_resposne(data, prompt):
 
     initial_message = [{
         "role": "system",
@@ -17,8 +24,14 @@ def resposne(data, prompt):
         }
     ]
 
-    response = client.responses.create(
-        input="Explain the importance of fast language models",
-        model="openai/gpt-oss-20b",
-    )
-# print(response.output_text)
+    # response = client.responses.create(
+    #     input="Explain the importance of fast language models",
+    #     model="openai/gpt-oss-20b",
+    # )
+
+    # print(initial_message)
+    # print(prompt)
+
+    log.info("successfully fetch response")
+
+    return data
