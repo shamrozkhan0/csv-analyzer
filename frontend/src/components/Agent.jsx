@@ -6,6 +6,25 @@ const Agent = () => {
     
     const {file_id} = useParams();
     const [prompt, setPrompt] = useState(null)
+    const [answer, setAnswer] = useState(null)
+    const [conversation, setConversation] = useState([])
+
+    const addConversation = (prompt, response) =>{
+        setConversation(e => e.append({"prompt":prompt, "content" : response}))
+    }
+ 
+    const getConversation = async (file_id) => {
+        const conversationURL = `http://localhost:8000/get-conversation/${file_id}`
+        const response = fetch(conversationURL,{
+            method:'GET',
+        })
+
+        if(!response.ok){
+            console.error("Unable to fetch conversation from database")
+        }
+        
+        
+    }
 
     const getResponse = async (id) =>{
         
@@ -25,18 +44,19 @@ const Agent = () => {
 
         const data = await response.json();
 
-
-        if (response.ok){
-            console.log(data.response)
-        } else{
+        if (!response.ok){
             console.error(data.message)
         }
 
+
+        console.log(data.body.response)
+        setAnswer(data.body.response )
 
         } catch (error){
             console.error(error)
         }
 
+    
 
     }
 
@@ -51,6 +71,11 @@ const Agent = () => {
                 <input type="text" name="prompt" onChange={e => setPrompt(e.target.value)}/>
                 <button type="submit">send</button>
             </form>
+
+            <div className="conversation">
+                
+            </div>
+
         </div>
     )
 }
