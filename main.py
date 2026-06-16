@@ -1,6 +1,4 @@
-import json
 from plistlib import InvalidFileException
-
 from fastapi.middleware.cors import CORSMiddleware
 from database import Database as database, Database
 from fastapi import FastAPI, UploadFile, File, Form
@@ -31,7 +29,6 @@ load_dotenv()
 @app.get("/")
 def show_home_page():
     return {"message": "Hello world"}
-
 
 
 @app.post("/uploads")
@@ -73,23 +70,19 @@ async def uploads_files(file: UploadFile = File(...)):
         log.error("")
 
 
-
 @app.post("/ai/{file_id}")
 def get_ai_response(file_id:int, prompt:str = Form(...)):
     try:
-
         d = Database()
         content = d.get_content_by_id(file_id)
 
         if content is None or content == "" or file_id is None:
             raise ValueError(f"Argument not found content or file id is empty")
 
-
         response = groq.get_resposne(content, prompt)
 
         conversation_json = {"prompt": prompt,"response": response}
         conversations = d.update_conversation_into_database(conversation_json, file_id)
-
 
         return {
             "status" : 200,
@@ -116,8 +109,5 @@ def download_file(filename: str):
 @app.get("/get-conversation/{id}")
 def get_conversations(id:int):
     d = Database()
-    return d.get_conversation_by_id(id)
-
-
-
-
+    conversation = d.get_conversation_by_id(id)
+    return  conversation

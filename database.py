@@ -92,33 +92,43 @@ class Database:
             log.error(f"Error fetching content from database {e}")
             return None
 
-
-    def update_conversation_into_database(self, conversation: str, file_id:int):
+    def update_conversation_into_database(self, conversation: str, file_id: int):
         previous_conversation_query = f"""
-                SELECT conversation from {self.table_name} WHERE file_id = %s
-                """
+            SELECT conversation FROM {self.table_name} WHERE file_id = %s
+        """
 
         query = f"""
-                UPDATE {self.table_name} SET conversation = %s WHERE file_id = %s
-                """
+            UPDATE {self.table_name} SET conversation = %s WHERE file_id = %s
+        """
+
         try:
             connection = self._database_connector()
+
             with connection.cursor() as cursor:
                 cursor.execute(previous_conversation_query, (file_id,))
                 result = cursor.fetchone()
+
                 if result and result[0]:
                     prev_conversation = json.loads(result[0])
                 else:
                     prev_conversation = {"messages": []}
-                current_message = conversation
+
+                # ✅ FIX: ensure proper dict
+                current_message = json.loads(conversation) if isinstance(conversation, str) else conversation
+
                 prev_conversation["messages"].append(current_message)
+
                 final_conversation_json = json.dumps(prev_conversation)
+
                 cursor.execute(query, (final_conversation_json, file_id))
-                log.info("Success: 'Conversation = (prompt, response)' have been inserted into database ")
+
             connection.commit()
             connection.close()
+
+            log.info("Success: conversation updated in database")
+
         except pymysql.Error as e:
-            log.error(f"Error: inserting 'conversation = (prompt, response)' inserting into database  {e}")
+            log.error(f"Error inserting conversation into database: {e}")
 
 
     def get_conversation_by_id(self, id: int):
@@ -128,10 +138,14 @@ class Database:
             with connection.cursor() as cursor:
                 cursor.execute(query, (id,))
                 connection.commit()
-                return cursor.fetchall()
+                result = cursor.fetchone()
+
+                if result and result[0]:
+                    return json.loads(result[0])
+                return {"messages": []}
         except pymysql.Error as e:
-            log.error(e)
+            log.error(f"Error Fetching Conversation from database {e}")
 
 
-c = Database()
-c.get_conversation_by_id(7937341)
+# c = Database()
+# c.get_conversation_by_id(7937341)
